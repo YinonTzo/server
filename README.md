@@ -5,20 +5,20 @@ Server Part In C&C Application
 # Compile & Run
 
 1. Download or clone all 4 projects - server, cli, client and common.
-2. Open them in java IDE.
-3. In the client project, allow multiple instance:
-   In Intellij go Edit Configurations -> Build and run -> modify options -> allow multiple instances.
-4. Run the server first, then the client(s) and the cli.
-5. Now you need to see some logs, if there are no errors you need to see in the cli the available commands.
-6. From now we will focus only in the cli.
+2. Open the projects in your Java IDE.
+3. For the client project, enable multiple instances. In Intellij, go to Edit Configurations -> Build and run -> modify
+   options -> allow multiple instances. You don't have to do it, but it recommended running multiple clients. 
+4. Start the server first, then the client(s) and the cli.
+5. Check the logs for any errors. If there are no errors, you should see the available commands in the CLI.
+6. From now on focus only on the cli.
 
 # Sending A payload
 
-Imagine we want to send a simple payload which runs and prints "Hello world" on the screen.
+Follow the steps below to send a simple payload that runs and prints "Hello World" on the screen:
 <ol>
-    <li>In the cli, choose "Send Payload Command"</li>
-    <li>Output: "Enter the file name". Type: Main</li>
-    <li>Output: "Enter The Java Code" Type:
+    <li>In the cli, select the "Send Payload Command" option.</li>
+    <li>Type: "Main" when asked to add file name.</li>
+    <li>copy and paste:
 
     public class Main {
         public static void main(String[] args) {
@@ -26,32 +26,24 @@ Imagine we want to send a simple payload which runs and prints "Hello world" on 
         }
     }
     done 
+when asked to add java code.
 </li>
-    <li>Output: "Do you want to add another file? (y/n)". Type: 'n'</li>
-    <li>Output: "Do you want to add program arguments? (y/n)". Type: 'n'</li>
-    <li>
-        Output: "Enter a client number (-1 for all clients) or type 'done' to finish: ".
-        Type: 0 or -1 to send broadcast.
-    </li>
-    <li>
-        Output: "Enter a client number (-1 for all clients) or type 'done' to finish: ".
-        Type: "done".
-    </li>
-    <li>Output: "Sent payload numbers [0] to clients: [0]". </li>
-
+    <li>Type 'n' when asked if you want to add another file.</li>
+    <li>Type 'n' when asked if you want to add program arguments.</li>
+    <li>Type: '0' or '-1' to send broadcast when asked to choose client number.</li>
+    <li>Type: "done" when asked to choose another clients.</li>
+    <li>You should see this output: "Sent payload numbers [0] to clients: [0]".</li>
 </ol>
 
-# See The Results
+# Viewing Results
 
+Follow the steps below to view the results of the payload:
 <ol>
-    <li>choose "Display Command Result"</li>
-    <li>
-        Output: "Enter payload ides (-1 for all) numbers or type 'done' to finish: ".
-        Type: '0'
+    <li>Select the "Display Command Result" option in the CLI.</li>
+    <li>Type: '0' when asked to insert payload ides.</li>
+    <li>Type: "done".</li>
+    <li>You should now be able to see the complete process that your payload went through and see the
+         "Hello World" message.
     </li>
-    <li>
-        Output: "Enter payload ides (-1 for all) numbers or type 'done' to finish: ".
-        Type: "done".
-    </li>
-    <li>Now you can see the complete process that your payload has beet throw and see the "Hello World".</li>
+    <li>The other options are easy to understand and follow.</li>
 </ol>
