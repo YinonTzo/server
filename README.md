@@ -19,15 +19,14 @@ Imagine we want to send a simple payload which runs and prints "Hello world" on 
     <li>In the cli, choose "Send Payload Command"</li>
     <li>Output: "Enter the file name". Type: Main</li>
     <li>Output: "Enter The Java Code" Type:
-        <code><pre>
-            public class Main {
-                public static void main(String[] args) {
-                    System.out.println("Hello World");
-                }
-            }
-            done
-        </pre></code>
-    </li>
+
+    public class Main {
+        public static void main(String[] args) {
+            System.out.println("Hello World");
+        }
+    }
+    done 
+</li>
     <li>Output: "Do you want to add another file? (y/n)". Type: 'n'</li>
     <li>Output: "Do you want to add program arguments? (y/n)". Type: 'n'</li>
     <li>
