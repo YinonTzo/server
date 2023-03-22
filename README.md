@@ -21,8 +21,10 @@ The project consists of three main components and one shared files component.
    </li>
 
    <li>
-      Client component: The client is the remote server.
-      The client connects to the server, and waits for incoming messages for execution.
+      Client component: The client is the remote server. <br>
+      The client connects to the server, and waits for incoming messages for execution. <br>
+      Note: The client component is designed to handle multiple messages in parallel,
+      allowing it to efficiently process incoming requests without waiting for the completion of previous jobs. 
    </li>
 
    <li>
