@@ -49,7 +49,6 @@ import java.net.Socket;
 public class Server {
 
     private ServerSocket clientSocket;
-    private ServerSocket cliSocket;
 
     private final ClientManagerService clientManagerService;
     private final ExecutionResultService executionResultService;
@@ -62,10 +61,10 @@ public class Server {
     public void start(int serverClientsPort, int serverCliPort) {
         try {
             this.clientSocket = new ServerSocket(serverClientsPort);
-            this.cliSocket = new ServerSocket(serverCliPort);
+            ServerSocket cliServerSocket  = new ServerSocket(serverCliPort);
             log.info("listening to {} and {}", serverClientsPort, serverCliPort);
 
-            Socket cliSocket = this.cliSocket.accept();
+            Socket cliSocket = cliServerSocket.accept();
             log.info("CLI has been connected");
             new Thread(new CLIHandler(cliSocket)).start();
 
@@ -74,6 +73,7 @@ public class Server {
                 log.info("new client has been connected");
             }
         } catch (Exception ignored) {}
+
         log.info("Main server has been finished.");
     }
 

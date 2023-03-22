@@ -3,6 +3,7 @@ package com.company.services.map;
 import com.company.server.Server;
 import com.company.common.statuses.ClientAndServerStatus;
 import com.company.services.ClientManagerService;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -10,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class ClientsManager  implements ClientManagerService {
 
     private final List<Server.ClientHandler> clientHandlers = new ArrayList<>();
@@ -17,7 +19,7 @@ public class ClientsManager  implements ClientManagerService {
     @Override
     public int addClient(Server.ClientHandler client) {
         client.setClientId(clientHandlers.size());
-        System.out.println("Added new client with id: " + client.getClientId()); //TODO: will be in a logger.
+        log.info("Added new client with id: " + client.getClientId());
         clientHandlers.add(client);
         return client.getClientId();
     }
