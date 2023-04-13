@@ -7,18 +7,17 @@ import com.company.common.messages.CLIToServer.BaseCLIToServer;
 import com.company.common.messages.CLIToServer.PayloadCLIToServer;
 import com.company.common.messages.serverToClient.BaseServerToClient;
 import com.company.common.messages.serverToClient.PayloadServerToClient;
-import com.company.server.Server;
 
+import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
- * The SendPayloadCommand class is a concrete implementation of the ServerToClientCommand abstract class,
+ * The "SendPayloadCommand" class is a concrete implementation of the "ServerToClientCommand" abstract class,
  * responsible for handling client requests to send payloads to other clients.
  */
 public class SendPayloadCommand extends ServerToClientCommand {
 
-    public static final String SENT_PAYLOAD_MESSAGE = "Sent payload numbers %s to clients: %s";
+    public static final String SENT_PAYLOAD_MESSAGE = "Sent payload number %s. ";
     public static final String COMMAND_NAME = "SendPayloadCommand";
 
     public SendPayloadCommand(ClientManagerService clientManagerService,
@@ -39,12 +38,16 @@ public class SendPayloadCommand extends ServerToClientCommand {
     }
 
     @Override
-    protected String updateServerAndReturnAnswer(Map<Server.ClientHandler, Integer> clientToMessageId) {
-        return String.format(SENT_PAYLOAD_MESSAGE, clientToMessageId.values(),
-                clientToMessageId.keySet()
-                        .stream()
-                        .map(Server.ClientHandler::getClientId)
-                        .collect(Collectors.toList()));
+    protected Map<Long, String> updateServerAndReturnAnswer(Map<Long, Integer> clientIdToMessageId) {
+        Map<Long, String> clientIdToAck = new HashMap<>();
+        for (Map.Entry<Long, Integer> entry : clientIdToMessageId.entrySet()) {
+            if (entry.getValue() != null) {
+                clientIdToAck.put(entry.getKey(), String.format(SENT_PAYLOAD_MESSAGE, entry.getValue()));
+            } else {
+                clientIdToAck.put(entry.getKey(), null);
+            }
+        }
+        return clientIdToAck;
     }
 
     @Override

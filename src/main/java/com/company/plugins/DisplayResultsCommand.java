@@ -1,6 +1,7 @@
 package com.company.plugins;
 
 import com.company.commands.CLIToServerCommand;
+import com.company.collectors.PayloadsCollector;
 import com.company.services.ClientManagerService;
 import com.company.services.ExecutionResultService;
 import com.company.common.messages.CLIToServer.BaseCLIToServer;
@@ -13,28 +14,32 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * The "DisplayCommandsResultCommand" class is a concrete subclass of the "CLIToServerCommand" class.
+ * The "DisplayResultsCommand" class is a concrete subclass of the "CLIToServerCommand" class.
  * It is intended to retrieve data about executions from the server,
  * and returns the results as a "CommandResults" object.
  */
-public class DisplayCommandsResultCommand extends CLIToServerCommand {
+public class DisplayResultsCommand extends CLIToServerCommand {
 
-    public static final String COMMAND_NAME = "DisplayCommandResult";
+    public static final String COMMAND_NAME = "DisplayResults";
 
-    public DisplayCommandsResultCommand(ClientManagerService clientManagerService,
-                                        ExecutionResultService executionResultService) {
+    private PayloadsCollector payloadsCollector;
+
+    public DisplayResultsCommand(ClientManagerService clientManagerService,
+                                 ExecutionResultService executionResultService) {
 
         super(clientManagerService, executionResultService);
+
+        payloadsCollector = new PayloadsCollector(executionResultService);
     }
 
     @Override
     public BaseServerToCLI execute(BaseCLIToServer cliRequest) {
         Map<Integer, List<ExecutionData>> payloadIdToResult = new HashMap<>();
 
-        List<Integer> collectWantedPayloadsIds = collectWantedPayloads(cliRequest.getRequestIds());
+        List<Integer> wantedPayloadsIds = payloadsCollector.collect(cliRequest.getRequestIds());
 
-        collectWantedPayloadsIds.forEach(id ->
-                payloadIdToResult.put(id, executionResultService.getCommandResults(id)));
+        wantedPayloadsIds.forEach(id ->
+                payloadIdToResult.put(id, executionResultService.getResults(id).orElse(null)));
 
         CommandResults commandResults = new CommandResults();
         commandResults.setType(cliRequest.getType());
@@ -42,16 +47,12 @@ public class DisplayCommandsResultCommand extends CLIToServerCommand {
         return commandResults;
     }
 
-    private List<Integer> collectWantedPayloads(List<Integer> wantedPayloadsIds) {
-        if (wantedPayloadsIds.contains(-1)) { //broadcast
-            return executionResultService.getAllResultsIds().stream().toList();
-        }
-
-        return wantedPayloadsIds;
-    }
-
     @Override
     public String getCommandName() {
         return COMMAND_NAME;
+    }
+
+    public void setPayloadsCollector(PayloadsCollector payloadsCollector) {
+        this.payloadsCollector = payloadsCollector;
     }
 }

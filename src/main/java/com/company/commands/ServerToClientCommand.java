@@ -1,18 +1,17 @@
 package com.company.commands;
 
+import com.company.collectors.ClientsCollector;
+import com.company.common.messages.serverToCLI.SendPayload;
+import com.company.entities.ExecutionResult;
 import com.company.services.ClientManagerService;
 import com.company.services.ExecutionResultService;
 import com.company.common.messages.CLIToServer.BaseCLIToServer;
-import com.company.common.messages.clientToServer.ExecutionData;
 import com.company.common.messages.serverToCLI.BaseServerToCLI;
-import com.company.common.messages.serverToCLI.TextMessage;
 import com.company.common.messages.serverToClient.BaseServerToClient;
-import com.company.server.Server;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * This is an abstract class, which implements the Command interface.
@@ -24,77 +23,62 @@ public abstract class ServerToClientCommand implements Command {
 
     protected ClientManagerService clientManagerService;
     protected ExecutionResultService executionResultService;
+    private final ClientsCollector clientsCollector;
 
     public ServerToClientCommand(ClientManagerService clientManagerService,
                                  ExecutionResultService executionResultService) {
         this.clientManagerService = clientManagerService;
         this.executionResultService = executionResultService;
+
+        this.clientsCollector = new ClientsCollector(clientManagerService);
     }
 
     public BaseServerToCLI execute(BaseCLIToServer cliRequest) {
-        //collect available clients
         log.info(cliRequest.toString());
 
-        TextMessage returnedMessage = new TextMessage();
+        SendPayload returnedMessage = new SendPayload();
         returnedMessage.setType(cliRequest.getType());
 
-        List<Server.ClientHandler> availableWantedClients =
-                collectAvailableWantedClients(cliRequest.getRequestIds());
-
-        if (availableWantedClients.isEmpty()) {
-            returnedMessage.setText(String.format("%s are not available clients.", cliRequest.getRequestIds()));
-            return returnedMessage;
-        }
-
-        //send messages
-        Map<Server.ClientHandler, Integer> clientToMessageId;
+        Map<Long, Integer> clientIdToMessageId;
         try {
-            clientToMessageId = sendPayloadToAvailableClients(cliRequest, availableWantedClients);
+            clientIdToMessageId = sendPayloadToWantedClients(cliRequest);
         } catch (IOException e) {
             log.error(e.getMessage());
-            List<Integer> clientIds = availableWantedClients.stream()
-                    .map(Server.ClientHandler::getClientId)
-                    .toList();
-            returnedMessage.setText(String.format("Failed to send message to clients: %s\n Please do exit.", clientIds));
+            log.error(String.format("Failed to send message to clients: %s", cliRequest.getRequestIds()));
+
+            returnedMessage.setClientIdToAck(null);
             return returnedMessage;
         }
 
-        //update the server
-        returnedMessage.setText(updateServerAndReturnAnswer(clientToMessageId));
+        returnedMessage.setClientIdToAck(updateServerAndReturnAnswer(clientIdToMessageId));
         return returnedMessage;
     }
 
-    private Map<Server.ClientHandler, Integer> sendPayloadToAvailableClients(
-            BaseCLIToServer cliRequest,
-            List<Server.ClientHandler> availableWantedClients) throws IOException {
+    private Map<Long, Integer> sendPayloadToWantedClients(BaseCLIToServer cliRequest) throws IOException {
 
-        BaseServerToClient serverToClients = CLIToServerToServerToClients(cliRequest);
+        BaseServerToClient serverToClient = CLIToServerToServerToClients(cliRequest);
 
-        Map<Server.ClientHandler, Integer> clientToMessageId = new HashMap<>();
+        List<Long> wantedClientsIds = clientsCollector.collect(cliRequest.getRequestIds());
 
-        for (Server.ClientHandler client : availableWantedClients) {
-            ExecutionData added = executionResultService.save(client);
-            serverToClients.setId(added.getMessageId());
-            client.sendMessage(serverToClients);
-            clientToMessageId.put(client, added.getMessageId());
+        Map<Long, Integer> clientIdToMessageId = new HashMap<>();
+
+        for (Long clientId : wantedClientsIds) {
+            if (!clientManagerService.isConnected(clientId)) {
+                clientIdToMessageId.put(clientId, null);
+            } else {
+                //save the message in the db and get id for the payload
+                ExecutionResult added = executionResultService.save(clientId);
+
+                serverToClient.setId(added.getMessageId());
+                clientManagerService.sendMessage(clientId, serverToClient);
+                clientIdToMessageId.put(clientId, added.getMessageId());
+            }
         }
 
-        return clientToMessageId;
+        return clientIdToMessageId;
     }
 
     protected abstract BaseServerToClient CLIToServerToServerToClients(BaseCLIToServer cliRequest);
 
-    protected abstract String updateServerAndReturnAnswer(Map<Server.ClientHandler, Integer> clientToMessageId);
-
-    private List<Server.ClientHandler> collectAvailableWantedClients(List<Integer> wantedClientsIds) {
-        if (wantedClientsIds.contains(-1)) { //broadcast
-            return clientManagerService.getAllAvailableClients();
-        }
-
-        return wantedClientsIds.stream()
-                .map(clientManagerService::getClient)
-                .filter(Objects::nonNull)
-                .filter(Server.ClientHandler::isAvailable)
-                .collect(Collectors.toList());
-    }
+    protected abstract Map<Long, String> updateServerAndReturnAnswer(Map<Long, Integer> clientIdToMessageId);
 }
