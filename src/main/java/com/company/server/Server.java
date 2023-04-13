@@ -5,12 +5,11 @@ import com.company.commands.menu.Menu;
 import com.company.services.ClientManagerService;
 import com.company.services.ExecutionResultService;
 import com.company.services.map.ClientsManager;
-import com.company.services.map.ExecutionResult;
+import com.company.services.map.ExecutionResults;
 import com.company.common.messages.CLIToServer.BaseCLIToServer;
 import com.company.common.messages.clientToServer.ExecutionData;
 import com.company.common.messages.serverToCLI.BaseServerToCLI;
 import com.company.common.messages.serverToClient.BaseServerToClient;
-import com.company.common.statuses.ClientAndServerStatus;
 import com.company.common.statuses.ExecutionStatus;
 import lombok.extern.slf4j.Slf4j;
 
@@ -55,14 +54,14 @@ public class Server {
 
     public Server() {
         this.clientManagerService = new ClientsManager();
-        this.executionResultService = new ExecutionResult(clientManagerService);
+        this.executionResultService = new ExecutionResults(clientManagerService);
     }
 
     public void start(int serverClientsPort, int serverCliPort) {
         try {
             this.clientSocket = new ServerSocket(serverClientsPort);
-            ServerSocket cliServerSocket  = new ServerSocket(serverCliPort);
-            log.info("listening to {} and {}", serverClientsPort, serverCliPort);
+            ServerSocket cliServerSocket = new ServerSocket(serverCliPort);
+            log.info("listening on {} and {}", serverClientsPort, serverCliPort);
 
             Socket cliSocket = cliServerSocket.accept();
             log.info("CLI has been connected");
@@ -72,7 +71,8 @@ public class Server {
                 waitToNewClient();
                 log.info("new client has been connected");
             }
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
 
         log.info("Main server has been finished.");
     }
@@ -140,8 +140,6 @@ public class Server {
         private final ObjectOutputStream out;
         private final ObjectInputStream in;
 
-        private int clientId;
-        private ClientAndServerStatus status;
         private int removeMessageId;
 
         public ClientHandler(Socket socket) throws IOException {
@@ -149,7 +147,6 @@ public class Server {
             out = new ObjectOutputStream(clientSocket.getOutputStream());
             in = new ObjectInputStream(clientSocket.getInputStream());
 
-            status = ClientAndServerStatus.AVAILABLE;
             removeMessageId = -1;
         }
 
@@ -159,6 +156,7 @@ public class Server {
                 ExecutionData result;
                 do {
                     result = receiveMessage();
+
                     log.info("result from client: " + result);
 
                     executionResultService.addResult(result);
@@ -187,33 +185,13 @@ public class Server {
             this.removeMessageId = removeMessageId;
         }
 
-        public int getClientId() {
-            return clientId;
-        }
-
-        public void setClientId(int clientId) {
-            this.clientId = clientId;
-        }
-
-        public ClientAndServerStatus getStatus() {
-            return status;
-        }
-
-        public Boolean isAvailable() {
-            return status == ClientAndServerStatus.AVAILABLE;
-        }
-
-        public void stopConnection() throws IOException {
+        private void stopConnection() throws IOException {
             in.close();
             out.close();
             clientSocket.close();
         }
 
-        public void setUnavailable() {
-            status = ClientAndServerStatus.UNAVAILABLE;
-        }
-
-        public boolean isClientStillWorking(ExecutionData result) {
+        private boolean isClientStillWorking(ExecutionData result) {
             if (removeMessageId == result.getMessageId() &&
                     (result.getStatus().equals(ExecutionStatus.FINISHED) ||
                             result.getStatus().equals(ExecutionStatus.ERROR)))

@@ -4,10 +4,9 @@ import com.company.services.ClientManagerService;
 import com.company.services.ExecutionResultService;
 import com.company.common.messages.CLIToServer.BaseCLIToServer;
 import com.company.common.messages.serverToClient.BaseServerToClient;
-import com.company.server.Server;
 
+import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * This is an abstract class, which implements the "Command" interface.
@@ -15,7 +14,7 @@ import java.util.stream.Collectors;
  */
 public abstract class BaseRemoveCommand extends ServerToClientCommand {
 
-    public static final String REMOVE_CLIENTS_MESSAGE = "Remove clients %s successfully.";
+    public static final String REMOVE_CLIENTS_MESSAGE = "Remove client successfully.";
     public static final String REMOVE_CLIENT = "RemoveClient";
 
     public BaseRemoveCommand(ClientManagerService clientManagerService,
@@ -31,20 +30,24 @@ public abstract class BaseRemoveCommand extends ServerToClientCommand {
     }
 
     @Override
-    protected String updateServerAndReturnAnswer(Map<Server.ClientHandler, Integer> clientToMessageId) {
-        for (Map.Entry<Server.ClientHandler, Integer> entry : clientToMessageId.entrySet()) {
-            Server.ClientHandler client = entry.getKey();
+    protected Map<Long, String> updateServerAndReturnAnswer(Map<Long, Integer> clientIdToMessageId) {
+        for (Map.Entry<Long, Integer> entry : clientIdToMessageId.entrySet()) {
+            Long clientId = entry.getKey();
             Integer messageId = entry.getValue();
-
-            client.setUnavailable();
-            client.setRemoveMessageId(messageId);
+            if (messageId != null) {
+                clientManagerService.removeClient(clientId, messageId);
+            }
         }
 
-        return String.format(REMOVE_CLIENTS_MESSAGE,
-                clientToMessageId.keySet()
-                        .stream()
-                        .map(Server.ClientHandler::getClientId)
-                        .collect(Collectors.toList())); //TODO: change the message a little bit
+        Map<Long, String> clientIdToAck = new HashMap<>();
+        for (Map.Entry<Long, Integer> entry : clientIdToMessageId.entrySet()) {
+            if (entry.getValue() != null) {
+                clientIdToAck.put(entry.getKey(), REMOVE_CLIENTS_MESSAGE);
+            } else {
+                clientIdToAck.put(entry.getKey(), null);
+            }
+        }
+        return clientIdToAck;
     }
 
     private String convertType() {

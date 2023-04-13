@@ -40,10 +40,10 @@ class DisplayClientsStatusCommandTest {
         BaseCLIToServer cliRequest = new BaseCLIToServer();
         cliRequest.setType(DisplayClientsStatusCommand.COMMAND_NAME);
 
-        Map<Integer, ClientAndServerStatus> clientAndServerStatusMap = new HashMap<>();
-        clientAndServerStatusMap.put(1, ClientAndServerStatus.AVAILABLE);
-        clientAndServerStatusMap.put(2, ClientAndServerStatus.UNAVAILABLE);
-        clientAndServerStatusMap.put(3, ClientAndServerStatus.AVAILABLE);
+        Map<Long, ClientAndServerStatus> clientAndServerStatusMap = new HashMap<>();
+        clientAndServerStatusMap.put(1L, ClientAndServerStatus.AVAILABLE);
+        clientAndServerStatusMap.put(2L, ClientAndServerStatus.UNAVAILABLE);
+        clientAndServerStatusMap.put(3L, ClientAndServerStatus.AVAILABLE);
         when(mockClientManagerService.getAllClientsAndStatuses()).thenReturn(clientAndServerStatusMap);
 
         //when
