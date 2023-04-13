@@ -8,7 +8,7 @@ import com.company.common.messages.serverToCLI.BaseServerToCLI;
 import com.company.common.messages.serverToCLI.ClientsAndStatuses;
 
 /**
- * The "DisplayClientAndItsPayloadsIdsCommand" class is a concrete subclass of the CLIToServerCommand class.
+ * The "DisplayClientAndItsPayloadsIdsCommand" class is a concrete subclass of the "CLIToServerCommand" class.
  * It is intended to retrieve data about clients and their statuses from the server,
  * and returns the results as a "ClientsAndStatuses" object.
  */

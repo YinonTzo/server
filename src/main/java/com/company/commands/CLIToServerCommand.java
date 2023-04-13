@@ -10,8 +10,8 @@ import com.company.services.ExecutionResultService;
  */
 public abstract class CLIToServerCommand implements Command {
 
-    protected ClientManagerService clientManagerService;
-    protected ExecutionResultService executionResultService;
+    protected final ClientManagerService clientManagerService;
+    protected final ExecutionResultService executionResultService;
 
     public CLIToServerCommand(ClientManagerService clientManagerService,
                               ExecutionResultService executionResultService) {

@@ -1,8 +1,9 @@
 package com.company.plugins;
 
 import com.company.common.messages.CLIToServer.PayloadCLIToServer;
-import com.company.common.messages.serverToClient.BaseServerToClient;
-import com.company.server.Server;
+import com.company.common.messages.serverToCLI.BaseServerToCLI;
+import com.company.common.messages.serverToCLI.SendPayload;
+import com.company.entities.ExecutionResult;
 import com.company.services.ClientManagerService;
 import com.company.services.ExecutionResultService;
 import org.junit.jupiter.api.BeforeEach;
@@ -11,8 +12,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
@@ -25,13 +25,7 @@ class SendPayloadCommandTest {
     @Mock
     private ExecutionResultService mockExecutionResultService;
 
-    @Mock
-    private Server.ClientHandler mockClientHandler1;
-
-    @Mock
-    private Server.ClientHandler mockClientHandler2;
-
-    SendPayloadCommand sendPayloadCommand;
+    private SendPayloadCommand sendPayloadCommand;
 
     @BeforeEach
     void setUp() {
@@ -40,37 +34,63 @@ class SendPayloadCommandTest {
     }
 
     @Test
-    void CLIToServerToServerToClients() {
-        //given
-        PayloadCLIToServer cliRequest = new PayloadCLIToServer("SendPayloadCommand");
-        String payload = "hello world";
-        cliRequest.setPayload(payload.getBytes(StandardCharsets.UTF_8));
+    void execute() {
+        // given
+        Long clientId = 123L;
+
+        PayloadCLIToServer cliRequest = new PayloadCLIToServer("some type");
+        cliRequest.setRequestIds(List.of(clientId.intValue()));
+        cliRequest.setPayload("payload".getBytes(StandardCharsets.UTF_8));
         cliRequest.setArguments("arg1 arg2");
 
-        //when
-        BaseServerToClient actualResult = sendPayloadCommand.CLIToServerToServerToClients(cliRequest);
+        when(mockClientManagerService.isConnected(clientId)).thenReturn(true);
+        ExecutionResult executionResult = new ExecutionResult();
+        executionResult.setMessageId(1);
+        when(mockExecutionResultService.save(clientId)).thenReturn(executionResult);
 
-        //then
-        assertEquals("SendPayloadCommand", ((PayloadCLIToServer) cliRequest).getType());
-        assertEquals("hello world", new String(((PayloadCLIToServer) cliRequest).getPayload()));
-        assertEquals("arg1 arg2", ((PayloadCLIToServer) cliRequest).getArguments());
+        // when
+        BaseServerToCLI actual = sendPayloadCommand.execute(cliRequest);
+
+        // then
+        SendPayload sendPayload = (SendPayload) actual;
+        assertNotNull(sendPayload);
+        assertNotNull(sendPayload.getClientIdToAck());
+        assertEquals(1, sendPayload.getClientIdToAck().size());
+        assertTrue(sendPayload.getClientIdToAck().containsKey(clientId));
+        assertNotNull(sendPayload.getClientIdToAck().get(clientId));
+        assertTrue(sendPayload.getClientIdToAck().get(clientId).contains("Sent payload number"));
     }
 
     @Test
-    void updateServerAndReturnAnswer() {
-        //given
-        Map<Server.ClientHandler, Integer> clientToMessageId = new HashMap<>();
-        clientToMessageId.put(mockClientHandler1, 1);
-        clientToMessageId.put(mockClientHandler2, 2);
+    void executeWithMissingClient() {
+        // given
+        Long clientId1 = 123L;
+        Long clientId2 = 1234L;
 
-        when(mockClientHandler1.getClientId()).thenReturn(1);
-        when(mockClientHandler2.getClientId()).thenReturn(2);
+        PayloadCLIToServer cliRequest = new PayloadCLIToServer("some type");
+        cliRequest.setRequestIds(List.of(clientId1.intValue(), clientId2.intValue()));
+        cliRequest.setPayload("payload".getBytes(StandardCharsets.UTF_8));
+        cliRequest.setArguments("arg1 arg2");
 
-        //when
-        String result = sendPayloadCommand.updateServerAndReturnAnswer(clientToMessageId);
+        when(mockClientManagerService.isConnected(clientId1)).thenReturn(true);
+        when(mockClientManagerService.isConnected(clientId2)).thenReturn(false);
+        ExecutionResult executionResult = new ExecutionResult();
+        executionResult.setMessageId(1);
+        when(mockExecutionResultService.save(clientId1)).thenReturn(executionResult);
 
-        //then
-        assertEquals("Sent payload numbers [1, 2] to clients: [1, 2]", result);
+        // when
+        BaseServerToCLI actual = sendPayloadCommand.execute(cliRequest);
+
+        // then
+        SendPayload sendPayload = (SendPayload) actual;
+        assertNotNull(sendPayload);
+        assertNotNull(sendPayload.getClientIdToAck());
+        assertEquals(2, sendPayload.getClientIdToAck().size());
+        assertTrue(sendPayload.getClientIdToAck().containsKey(clientId1));
+        assertTrue(sendPayload.getClientIdToAck().containsKey(clientId2));
+        assertNotNull(sendPayload.getClientIdToAck().get(clientId1));
+        assertTrue(sendPayload.getClientIdToAck().get(clientId1).contains("Sent payload number"));
+        assertNull(sendPayload.getClientIdToAck().get(clientId2));
     }
 
     @Test
