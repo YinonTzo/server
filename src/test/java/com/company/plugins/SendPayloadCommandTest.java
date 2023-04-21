@@ -14,6 +14,7 @@ import org.mockito.MockitoAnnotations;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
+import static com.company.plugins.SendPayloadCommand.SENT_PAYLOAD_MESSAGE;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
@@ -58,7 +59,6 @@ class SendPayloadCommandTest {
         assertEquals(1, sendPayload.getClientIdToAck().size());
         assertTrue(sendPayload.getClientIdToAck().containsKey(clientId));
         assertNotNull(sendPayload.getClientIdToAck().get(clientId));
-        assertTrue(sendPayload.getClientIdToAck().get(clientId).contains("Sent payload number"));
     }
 
     @Test
@@ -89,7 +89,6 @@ class SendPayloadCommandTest {
         assertTrue(sendPayload.getClientIdToAck().containsKey(clientId1));
         assertTrue(sendPayload.getClientIdToAck().containsKey(clientId2));
         assertNotNull(sendPayload.getClientIdToAck().get(clientId1));
-        assertTrue(sendPayload.getClientIdToAck().get(clientId1).contains("Sent payload number"));
         assertNull(sendPayload.getClientIdToAck().get(clientId2));
     }
 

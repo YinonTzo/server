@@ -12,7 +12,7 @@ public interface ExecutionResultService {
 
     void addResult(ExecutionData result);
 
-    Optional<List<ExecutionData>> getResults(int commandResultId);
+    Optional<List<ExecutionData>> getResultsById(int commandResultId);
 
     List<Integer> getAllResultsIds();
 }

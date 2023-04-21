@@ -17,7 +17,7 @@ import java.util.Map;
  */
 public class SendPayloadCommand extends ServerToClientCommand {
 
-    public static final String SENT_PAYLOAD_MESSAGE = "Sent payload number %s. ";
+    public static final String SENT_PAYLOAD_MESSAGE = "%s";
     public static final String COMMAND_NAME = "SendPayloadCommand";
 
     public SendPayloadCommand(ClientManagerService clientManagerService,

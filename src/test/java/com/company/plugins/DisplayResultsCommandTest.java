@@ -55,9 +55,9 @@ class DisplayResultsCommandTest {
 
         when(payloadsCollector.collect(anyList())).thenReturn(Arrays.asList(messageId1, messageId2, messageId3));
 
-        when(mockExecutionResultService.getResults(messageId1)).thenReturn(Optional.of(payloadIdToResult.get(messageId1)));
-        when(mockExecutionResultService.getResults(messageId2)).thenReturn(Optional.of(payloadIdToResult.get(messageId2)));
-        when(mockExecutionResultService.getResults(messageId3)).thenReturn(Optional.of(payloadIdToResult.get(messageId3)));
+        when(mockExecutionResultService.getResultsById(messageId1)).thenReturn(Optional.of(payloadIdToResult.get(messageId1)));
+        when(mockExecutionResultService.getResultsById(messageId2)).thenReturn(Optional.of(payloadIdToResult.get(messageId2)));
+        when(mockExecutionResultService.getResultsById(messageId3)).thenReturn(Optional.of(payloadIdToResult.get(messageId3)));
 
         // when
         BaseServerToCLI actual = displayCommandsResultCommand.execute(cliRequest);

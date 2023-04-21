@@ -2,10 +2,13 @@ package com.company.server;
 
 import com.company.commands.CommandLoader;
 import com.company.commands.menu.Menu;
+import com.company.repositories.ClientRepository;
+import com.company.repositories.ExecutionResultRepository;
 import com.company.services.ClientManagerService;
 import com.company.services.ExecutionResultService;
-import com.company.services.map.ClientsManager;
-import com.company.services.map.ExecutionResults;
+import com.company.services.jpa.ClientJpaService;
+import com.company.services.jpa.ExecutionResultJpaService;
+import com.company.services.map.ClientHandlers;
 import com.company.common.messages.CLIToServer.BaseCLIToServer;
 import com.company.common.messages.clientToServer.ExecutionData;
 import com.company.common.messages.serverToCLI.BaseServerToCLI;
@@ -13,6 +16,8 @@ import com.company.common.messages.serverToClient.BaseServerToClient;
 import com.company.common.statuses.ExecutionStatus;
 import lombok.extern.slf4j.Slf4j;
 
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -47,14 +52,19 @@ import java.net.Socket;
 @Slf4j
 public class Server {
 
-    private ServerSocket clientSocket;
+    private static final String PERSISTENCE_UNIT_NAME = "persistence-unit";
 
+    private ServerSocket clientSocket;
     private final ClientManagerService clientManagerService;
     private final ExecutionResultService executionResultService;
 
     public Server() {
-        this.clientManagerService = new ClientsManager();
-        this.executionResultService = new ExecutionResults(clientManagerService);
+        EntityManagerFactory emf = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT_NAME);
+
+        this.clientManagerService = new ClientJpaService(new ClientRepository(emf), new ClientHandlers());
+
+        this.executionResultService = new ExecutionResultJpaService(clientManagerService,
+                new ExecutionResultRepository(emf));
     }
 
     public void start(int serverClientsPort, int serverCliPort) {

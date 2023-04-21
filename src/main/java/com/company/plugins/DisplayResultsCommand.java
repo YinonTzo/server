@@ -39,7 +39,7 @@ public class DisplayResultsCommand extends CLIToServerCommand {
         List<Integer> wantedPayloadsIds = payloadsCollector.collect(cliRequest.getRequestIds());
 
         wantedPayloadsIds.forEach(id ->
-                payloadIdToResult.put(id, executionResultService.getResults(id).orElse(null)));
+                payloadIdToResult.put(id, executionResultService.getResultsById(id).orElse(null)));
 
         CommandResults commandResults = new CommandResults();
         commandResults.setType(cliRequest.getType());
