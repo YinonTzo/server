@@ -65,7 +65,7 @@ To compile and run the project, make sure you have PostgreSQL and H2 installed.
    options -> allow multiple instances. You don't have to do it, but it recommended running multiple clients.
 4. This project uses Maven to handle dependencies, so make sure that you can package Maven first in each component
    before compiling and running the code.
-5. create in your postgreSQL new Database named "app".
+5. Create in your postgreSQL new database named "app".
 6. Start the server first, then the client(s) and the cli.
 7. Check the logs for any errors. If there are no errors, you should see the available commands in the CLI.
 8. From now on focus only on the cli.
