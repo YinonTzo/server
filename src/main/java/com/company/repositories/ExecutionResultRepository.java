@@ -41,6 +41,7 @@ public class ExecutionResultRepository {
         } finally {
             em.close();
         }
+
         return executionResult;
     }
 
@@ -56,6 +57,7 @@ public class ExecutionResultRepository {
         } finally {
             em.close();
         }
+
         return executionResult.getId();
     }
 
@@ -72,6 +74,7 @@ public class ExecutionResultRepository {
         } finally {
             em.close();
         }
+
         return updatedExecutionResult;
     }
 
@@ -95,7 +98,6 @@ public class ExecutionResultRepository {
         } finally {
             em.close();
         }
-
 
         return executionResults;
     }
